@@ -400,11 +400,7 @@ npx expo build:ios
 - Update documentation
 - Ensure all tests pass
 
-## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🆘 Support
 
 ### Documentation
 
@@ -412,11 +408,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Architecture Guide](docs/architecture.md)
 - [Deployment Guide](docs/deployment.md)
 
-### Community
-
-- [GitHub Issues](https://github.com/your-username/cloudops-pro/issues)
-- [Discussions](https://github.com/your-username/cloudops-pro/discussions)
-- [Discord Server](https://discord.gg/cloudops-pro)
 
 ### Professional Support
 
@@ -445,7 +436,7 @@ For enterprise support and custom implementations, contact us at support@cloudop
 - [ ] Integration marketplace
 - [ ] Enterprise SSO support
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - OpenAI for AI integration capabilities
 - The React and FastAPI communities
@@ -453,7 +444,3 @@ For enterprise support and custom implementations, contact us at support@cloudop
 - Cloud providers (AWS, GCP, Azure) for their APIs
 
 ---
-
-**Made with ❤️ by the CloudOps Pro Team**
-
-For more information, visit [cloudopspro.com](https://cloudopspro.com)
