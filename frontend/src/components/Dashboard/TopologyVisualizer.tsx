@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   ServerIcon, 
-  DatabaseIcon, 
+  CircleStackIcon, 
   CloudIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon
@@ -62,7 +62,7 @@ const getResourceIcon = (type: string) => {
     case 'server':
       return <ServerIcon className="h-5 w-5" />;
     case 'database':
-      return <DatabaseIcon className="h-5 w-5" />;
+      return <CircleStackIcon className="h-5 w-5" />;
     case 'storage':
       return <CloudIcon className="h-5 w-5" />;
     default:

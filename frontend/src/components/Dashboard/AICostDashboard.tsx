@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { 
   ChartBarIcon, 
-  TrendingUpIcon, 
-  TrendingDownIcon,
+  ArrowTrendingUpIcon, 
+  ArrowTrendingDownIcon,
   LightBulbIcon,
   ArrowPathIcon
 } from '@heroicons/react/24/outline';
@@ -134,9 +134,9 @@ export default function AICostDashboard() {
           <div className="text-right">
             <div className={`flex items-center text-sm ${costChange >= 0 ? 'text-red-600' : 'text-green-600'}`}>
               {costChange >= 0 ? (
-                <TrendingUpIcon className="h-4 w-4 mr-1" />
+                <ArrowTrendingUpIcon className="h-4 w-4 mr-1" />
               ) : (
-                <TrendingDownIcon className="h-4 w-4 mr-1" />
+                <ArrowTrendingDownIcon className="h-4 w-4 mr-1" />
               )}
               {Math.abs(costChangePercent).toFixed(1)}%
             </div>

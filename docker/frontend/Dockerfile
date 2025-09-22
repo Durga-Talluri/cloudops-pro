@@ -1,32 +1,20 @@
-# Frontend Dockerfile for React + TypeScript + TailwindCSS
-FROM node:18-alpine AS builder
+# Use a lightweight Node.js image
+FROM node:18-alpine
 
-# Set working directory
+# Set the working directory
 WORKDIR /app
 
-# Copy package files
+# Copy package.json and package-lock.json to leverage Docker's cache
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci --only=production
+RUN npm install
 
-# Copy source code
+# Copy the rest of the application source code
 COPY . .
 
-# Build the application
-RUN npm run build
+# Expose the port for the development server
+EXPOSE 3000
 
-# Production stage
-FROM nginx:alpine
-
-# Copy built assets from builder stage
-COPY --from=builder /app/build /usr/share/nginx/html
-
-# Copy nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
-
-# Expose port
-EXPOSE 80
-
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start the development server using the script from package.json
+CMD ["npm", "run", "dev"]

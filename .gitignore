@@ -1,0 +1,27 @@
+
+# Dependency directories
+node_modules/
+frontend/node_modules/
+backend/venv/
+
+# build artifacts
+dist/
+build/
+frontend/dist/
+frontend/build/
+
+# Logs
+npm-debug.log
+yarn-debug.log*
+yarn-error.log*
+
+# IDE files
+.vscode/
+.idea/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.production.local
+venv

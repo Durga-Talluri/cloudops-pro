@@ -5,7 +5,7 @@ import {
   ExclamationTriangleIcon,
   CloudIcon,
   ServerIcon,
-  DatabaseIcon
+  CircleStackIcon
 } from '@heroicons/react/24/outline';
 import AICostDashboard from '@/components/Dashboard/AICostDashboard';
 import ComplianceMonitor from '@/components/Dashboard/ComplianceMonitor';
@@ -128,7 +128,7 @@ export default function Dashboard() {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-gray-900 flex items-center">
-              <DatabaseIcon className="h-6 w-6 text-primary-600 mr-2" />
+              <CircleStackIcon className="h-6 w-6 text-primary-600 mr-2" />
               Cloud Infrastructure Topology
             </h2>
             <div className="flex space-x-2">
