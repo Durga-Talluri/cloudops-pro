@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  ServerIcon, 
-  CircleStackIcon, 
+import React, { useState, useEffect } from "react";
+import {
+  ServerIcon,
+  CircleStackIcon,
   CloudIcon,
   ExclamationTriangleIcon,
-  CheckCircleIcon
-} from '@heroicons/react/24/outline';
+  CheckCircleIcon,
+} from "@heroicons/react/24/outline";
 
 interface CloudResource {
   id: string;
   name: string;
-  type: 'server' | 'database' | 'storage' | 'network' | 'container';
-  status: 'running' | 'stopped' | 'pending' | 'error';
-  provider: 'aws' | 'gcp' | 'azure';
+  type: "server" | "database" | "storage" | "network" | "container";
+  status: "running" | "stopped" | "pending" | "error";
+  provider: "aws" | "gcp" | "azure";
   region: string;
   cost: number;
 }
@@ -23,35 +23,20 @@ interface TopologyData {
   azure: CloudResource[];
 }
 
-const mockTopologyData: TopologyData = {
-  aws: [
-    { id: 'aws-vm1', name: 'Web Server', type: 'server', status: 'running', provider: 'aws', region: 'us-east-1', cost: 120 },
-    { id: 'aws-db1', name: 'Primary DB', type: 'database', status: 'running', provider: 'aws', region: 'us-east-1', cost: 340 },
-    { id: 'aws-s3', name: 'File Storage', type: 'storage', status: 'running', provider: 'aws', region: 'us-east-1', cost: 45 },
-    { id: 'aws-lb', name: 'Load Balancer', type: 'network', status: 'running', provider: 'aws', region: 'us-east-1', cost: 18 }
-  ],
-  gcp: [
-    { id: 'gcp-vm1', name: 'App Server', type: 'server', status: 'running', provider: 'gcp', region: 'us-central1', cost: 95 },
-    { id: 'gcp-db1', name: 'Analytics DB', type: 'database', status: 'running', provider: 'gcp', region: 'us-central1', cost: 280 },
-    { id: 'gcp-k8s', name: 'Kubernetes', type: 'container', status: 'running', provider: 'gcp', region: 'us-central1', cost: 156 }
-  ],
-  azure: [
-    { id: 'azure-vm1', name: 'Backup Server', type: 'server', status: 'stopped', provider: 'azure', region: 'eastus', cost: 0 },
-    { id: 'azure-db1', name: 'Cache DB', type: 'database', status: 'running', provider: 'azure', region: 'eastus', cost: 78 },
-    { id: 'azure-storage', name: 'Archive Storage', type: 'storage', status: 'running', provider: 'azure', region: 'eastus', cost: 23 }
-  ]
-};
+import { apiService } from "@/services/api";
 
 const getStatusIcon = (status: string) => {
   switch (status) {
-    case 'running':
+    case "running":
       return <CheckCircleIcon className="h-4 w-4 text-green-500" />;
-    case 'stopped':
+    case "stopped":
       return <div className="h-4 w-4 rounded-full bg-gray-400" />;
-    case 'error':
+    case "error":
       return <ExclamationTriangleIcon className="h-4 w-4 text-red-500" />;
-    case 'pending':
-      return <div className="h-4 w-4 rounded-full bg-yellow-400 animate-pulse" />;
+    case "pending":
+      return (
+        <div className="h-4 w-4 rounded-full bg-yellow-400 animate-pulse" />
+      );
     default:
       return <div className="h-4 w-4 rounded-full bg-gray-400" />;
   }
@@ -59,11 +44,11 @@ const getStatusIcon = (status: string) => {
 
 const getResourceIcon = (type: string) => {
   switch (type) {
-    case 'server':
+    case "server":
       return <ServerIcon className="h-5 w-5" />;
-    case 'database':
+    case "database":
       return <CircleStackIcon className="h-5 w-5" />;
-    case 'storage':
+    case "storage":
       return <CloudIcon className="h-5 w-5" />;
     default:
       return <ServerIcon className="h-5 w-5" />;
@@ -72,37 +57,56 @@ const getResourceIcon = (type: string) => {
 
 const getProviderColor = (provider: string) => {
   switch (provider) {
-    case 'aws':
-      return 'border-orange-200 bg-orange-50';
-    case 'gcp':
-      return 'border-blue-200 bg-blue-50';
-    case 'azure':
-      return 'border-blue-300 bg-blue-100';
+    case "aws":
+      return "border-orange-200 bg-orange-50";
+    case "gcp":
+      return "border-blue-200 bg-blue-50";
+    case "azure":
+      return "border-blue-300 bg-blue-100";
     default:
-      return 'border-gray-200 bg-gray-50';
+      return "border-gray-200 bg-gray-50";
   }
 };
 
 export default function TopologyVisualizer() {
-  const [topologyData, setTopologyData] = useState<TopologyData>(mockTopologyData);
-  const [selectedResource, setSelectedResource] = useState<CloudResource | null>(null);
-  const [viewMode, setViewMode] = useState<'2d' | '3d'>('2d');
-
+  const [topologyData, setTopologyData] = useState<TopologyData>({
+    aws: [],
+    gcp: [],
+    azure: [],
+  });
+  const [selectedResource, setSelectedResource] =
+    useState<CloudResource | null>(null);
+  const [viewMode, setViewMode] = useState<"2d" | "3d">("2d");
   useEffect(() => {
-    // Simulate data fetching
-    const interval = setInterval(() => {
-      // Randomly update some resource statuses for demo
-      setTopologyData(prev => ({
-        ...prev,
-        aws: prev.aws.map(resource => ({
-          ...resource,
-          status: Math.random() > 0.9 ? 
-            (resource.status === 'running' ? 'error' : 'running') : 
-            resource.status
-        }))
-      }));
-    }, 10000);
+    const fetchTopology = async () => {
+      try {
+        const resAny: any = await apiService.get("/usage/");
+        if (resAny) {
+          const data = resAny;
+          const mapProvider = (list: any[] = []) =>
+            list.map((r: any) => ({
+              id: r.id,
+              name: r.name,
+              type: r.type || "server",
+              status: r.status || "running",
+              provider: r.provider,
+              region: r.region,
+              cost: r.cost || 0,
+            }));
 
+          setTopologyData({
+            aws: mapProvider(data.aws || []),
+            gcp: mapProvider(data.gcp || []),
+            azure: mapProvider(data.azure || []),
+          });
+        }
+      } catch (err) {
+        console.error("Failed to fetch topology/usage data", err);
+      }
+    };
+
+    fetchTopology();
+    const interval = setInterval(fetchTopology, 60000);
     return () => clearInterval(interval);
   }, []);
 
@@ -115,8 +119,12 @@ export default function TopologyVisualizer() {
       {/* Cost Summary */}
       <div className="bg-gray-50 rounded-lg p-4">
         <div className="flex justify-between items-center">
-          <h3 className="text-lg font-medium text-gray-900">Total Infrastructure Cost</h3>
-          <span className="text-2xl font-bold text-primary-600">${totalCost.toLocaleString()}/month</span>
+          <h3 className="text-lg font-medium text-gray-900">
+            Total Infrastructure Cost
+          </h3>
+          <span className="text-2xl font-bold text-primary-600">
+            ${totalCost.toLocaleString()}/month
+          </span>
         </div>
         <div className="grid grid-cols-3 gap-4 mt-4">
           <div className="text-center">
@@ -160,13 +168,19 @@ export default function TopologyVisualizer() {
                     <div className="flex items-center space-x-2">
                       {getResourceIcon(resource.type)}
                       <div>
-                        <p className="font-medium text-gray-900">{resource.name}</p>
-                        <p className="text-sm text-gray-600 capitalize">{resource.type}</p>
+                        <p className="font-medium text-gray-900">
+                          {resource.name}
+                        </p>
+                        <p className="text-sm text-gray-600 capitalize">
+                          {resource.type}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
                       {getStatusIcon(resource.status)}
-                      <span className="text-sm font-medium">${resource.cost}</span>
+                      <span className="text-sm font-medium">
+                        ${resource.cost}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -191,13 +205,19 @@ export default function TopologyVisualizer() {
                     <div className="flex items-center space-x-2">
                       {getResourceIcon(resource.type)}
                       <div>
-                        <p className="font-medium text-gray-900">{resource.name}</p>
-                        <p className="text-sm text-gray-600 capitalize">{resource.type}</p>
+                        <p className="font-medium text-gray-900">
+                          {resource.name}
+                        </p>
+                        <p className="text-sm text-gray-600 capitalize">
+                          {resource.type}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
                       {getStatusIcon(resource.status)}
-                      <span className="text-sm font-medium">${resource.cost}</span>
+                      <span className="text-sm font-medium">
+                        ${resource.cost}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -222,13 +242,19 @@ export default function TopologyVisualizer() {
                     <div className="flex items-center space-x-2">
                       {getResourceIcon(resource.type)}
                       <div>
-                        <p className="font-medium text-gray-900">{resource.name}</p>
-                        <p className="text-sm text-gray-600 capitalize">{resource.type}</p>
+                        <p className="font-medium text-gray-900">
+                          {resource.name}
+                        </p>
+                        <p className="text-sm text-gray-600 capitalize">
+                          {resource.type}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
                       {getStatusIcon(resource.status)}
-                      <span className="text-sm font-medium">${resource.cost}</span>
+                      <span className="text-sm font-medium">
+                        ${resource.cost}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -258,11 +284,15 @@ export default function TopologyVisualizer() {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Type</p>
-                <p className="font-medium capitalize">{selectedResource.type}</p>
+                <p className="font-medium capitalize">
+                  {selectedResource.type}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Provider</p>
-                <p className="font-medium uppercase">{selectedResource.provider}</p>
+                <p className="font-medium uppercase">
+                  {selectedResource.provider}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Region</p>
@@ -272,7 +302,9 @@ export default function TopologyVisualizer() {
                 <p className="text-sm text-gray-600">Status</p>
                 <div className="flex items-center space-x-2">
                   {getStatusIcon(selectedResource.status)}
-                  <span className="font-medium capitalize">{selectedResource.status}</span>
+                  <span className="font-medium capitalize">
+                    {selectedResource.status}
+                  </span>
                 </div>
               </div>
               <div>

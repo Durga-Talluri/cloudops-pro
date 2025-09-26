@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { 
+import React, { useState, useEffect } from "react";
+import { apiService } from "@/services/api";
+import {
   PlayIcon,
   CheckCircleIcon,
   XCircleIcon,
@@ -7,14 +8,14 @@ import {
   ArrowRightIcon,
   CodeBracketIcon,
   WrenchScrewdriverIcon,
-  RocketLaunchIcon
-} from '@heroicons/react/24/outline';
+  RocketLaunchIcon,
+} from "@heroicons/react/24/outline";
 
 interface PipelineStage {
   id: string;
   name: string;
   description: string;
-  status: 'success' | 'failed' | 'pending' | 'running';
+  status: "success" | "failed" | "pending" | "running";
   duration?: number;
   timestamp?: string;
   logs?: string[];
@@ -25,7 +26,7 @@ interface Pipeline {
   name: string;
   branch: string;
   commit: string;
-  status: 'success' | 'failed' | 'pending' | 'running';
+  status: "success" | "failed" | "pending" | "running";
   stages: PipelineStage[];
   startedAt: string;
   completedAt?: string;
@@ -34,130 +35,198 @@ interface Pipeline {
 
 const mockPipelines: Pipeline[] = [
   {
-    id: '1',
-    name: 'Production Deployment',
-    branch: 'main',
-    commit: 'a1b2c3d',
-    status: 'success',
-    startedAt: '2024-01-21T14:00:00Z',
-    completedAt: '2024-01-21T14:15:00Z',
-    triggeredBy: 'john.doe',
+    id: "1",
+    name: "Production Deployment",
+    branch: "main",
+    commit: "a1b2c3d",
+    status: "success",
+    startedAt: "2024-01-21T14:00:00Z",
+    completedAt: "2024-01-21T14:15:00Z",
+    triggeredBy: "john.doe",
     stages: [
       {
-        id: 'build',
-        name: 'Build',
-        description: 'Compile and package application',
-        status: 'success',
+        id: "build",
+        name: "Build",
+        description: "Compile and package application",
+        status: "success",
         duration: 180,
-        timestamp: '2024-01-21T14:03:00Z',
-        logs: ['Installing dependencies...', 'Building application...', 'Build completed successfully']
+        timestamp: "2024-01-21T14:03:00Z",
+        logs: [
+          "Installing dependencies...",
+          "Building application...",
+          "Build completed successfully",
+        ],
       },
       {
-        id: 'test',
-        name: 'Test',
-        description: 'Run unit and integration tests',
-        status: 'success',
+        id: "test",
+        name: "Test",
+        description: "Run unit and integration tests",
+        status: "success",
         duration: 240,
-        timestamp: '2024-01-21T14:07:00Z',
-        logs: ['Running unit tests...', 'Running integration tests...', 'All tests passed']
+        timestamp: "2024-01-21T14:07:00Z",
+        logs: [
+          "Running unit tests...",
+          "Running integration tests...",
+          "All tests passed",
+        ],
       },
       {
-        id: 'deploy',
-        name: 'Deploy',
-        description: 'Deploy to production environment',
-        status: 'success',
+        id: "deploy",
+        name: "Deploy",
+        description: "Deploy to production environment",
+        status: "success",
         duration: 300,
-        timestamp: '2024-01-21T14:12:00Z',
-        logs: ['Deploying to production...', 'Health checks passed', 'Deployment successful']
-      }
-    ]
+        timestamp: "2024-01-21T14:12:00Z",
+        logs: [
+          "Deploying to production...",
+          "Health checks passed",
+          "Deployment successful",
+        ],
+      },
+    ],
   },
   {
-    id: '2',
-    name: 'Feature Branch Build',
-    branch: 'feature/new-dashboard',
-    commit: 'e4f5g6h',
-    status: 'running',
-    startedAt: '2024-01-21T14:20:00Z',
-    triggeredBy: 'jane.smith',
+    id: "2",
+    name: "Feature Branch Build",
+    branch: "feature/new-dashboard",
+    commit: "e4f5g6h",
+    status: "running",
+    startedAt: "2024-01-21T14:20:00Z",
+    triggeredBy: "jane.smith",
     stages: [
       {
-        id: 'build',
-        name: 'Build',
-        description: 'Compile and package application',
-        status: 'success',
+        id: "build",
+        name: "Build",
+        description: "Compile and package application",
+        status: "success",
         duration: 165,
-        timestamp: '2024-01-21T14:23:00Z',
-        logs: ['Installing dependencies...', 'Building application...', 'Build completed successfully']
+        timestamp: "2024-01-21T14:23:00Z",
+        logs: [
+          "Installing dependencies...",
+          "Building application...",
+          "Build completed successfully",
+        ],
       },
       {
-        id: 'test',
-        name: 'Test',
-        description: 'Run unit and integration tests',
-        status: 'running',
-        timestamp: '2024-01-21T14:26:00Z',
-        logs: ['Running unit tests...', 'Running integration tests...']
+        id: "test",
+        name: "Test",
+        description: "Run unit and integration tests",
+        status: "running",
+        timestamp: "2024-01-21T14:26:00Z",
+        logs: ["Running unit tests...", "Running integration tests..."],
       },
       {
-        id: 'deploy',
-        name: 'Deploy',
-        description: 'Deploy to staging environment',
-        status: 'pending'
-      }
-    ]
+        id: "deploy",
+        name: "Deploy",
+        description: "Deploy to staging environment",
+        status: "pending",
+      },
+    ],
   },
   {
-    id: '3',
-    name: 'Hotfix Deployment',
-    branch: 'hotfix/security-patch',
-    commit: 'i7j8k9l',
-    status: 'failed',
-    startedAt: '2024-01-21T13:45:00Z',
-    completedAt: '2024-01-21T13:52:00Z',
-    triggeredBy: 'mike.wilson',
+    id: "3",
+    name: "Hotfix Deployment",
+    branch: "hotfix/security-patch",
+    commit: "i7j8k9l",
+    status: "failed",
+    startedAt: "2024-01-21T13:45:00Z",
+    completedAt: "2024-01-21T13:52:00Z",
+    triggeredBy: "mike.wilson",
     stages: [
       {
-        id: 'build',
-        name: 'Build',
-        description: 'Compile and package application',
-        status: 'success',
+        id: "build",
+        name: "Build",
+        description: "Compile and package application",
+        status: "success",
         duration: 120,
-        timestamp: '2024-01-21T13:47:00Z',
-        logs: ['Installing dependencies...', 'Building application...', 'Build completed successfully']
+        timestamp: "2024-01-21T13:47:00Z",
+        logs: [
+          "Installing dependencies...",
+          "Building application...",
+          "Build completed successfully",
+        ],
       },
       {
-        id: 'test',
-        name: 'Test',
-        description: 'Run unit and integration tests',
-        status: 'failed',
+        id: "test",
+        name: "Test",
+        description: "Run unit and integration tests",
+        status: "failed",
         duration: 180,
-        timestamp: '2024-01-21T13:50:00Z',
-        logs: ['Running unit tests...', 'Running integration tests...', 'Test failed: Security validation error']
+        timestamp: "2024-01-21T13:50:00Z",
+        logs: [
+          "Running unit tests...",
+          "Running integration tests...",
+          "Test failed: Security validation error",
+        ],
       },
       {
-        id: 'deploy',
-        name: 'Deploy',
-        description: 'Deploy to production environment',
-        status: 'pending'
-      }
-    ]
-  }
+        id: "deploy",
+        name: "Deploy",
+        description: "Deploy to production environment",
+        status: "pending",
+      },
+    ],
+  },
 ];
 
 export default function GitOpsWorkflow() {
   const [pipelines, setPipelines] = useState<Pipeline[]>(mockPipelines);
-  const [selectedPipeline, setSelectedPipeline] = useState<Pipeline | null>(null);
+  const [selectedPipeline, setSelectedPipeline] = useState<Pipeline | null>(
+    null
+  );
   const [isLoading, setIsLoading] = useState(false);
+
+  const fetchPipelines = async () => {
+    setIsLoading(true);
+    try {
+      const resAny: any = await apiService.get("/pipelines", { limit: 20 });
+      if (resAny?.pipelines) {
+        setPipelines(
+          (resAny.pipelines as any[]).map((p: any) => ({
+            id: String(p.id),
+            name: p.name,
+            branch: p.branch,
+            commit: p.commit,
+            status: p.status,
+            stages: (p.stages || []).map((s: any) => ({
+              id: s.id,
+              name: s.name,
+              description: s.description,
+              status: s.status,
+              duration: s.duration,
+              timestamp: s.timestamp,
+              logs: s.logs,
+            })),
+            startedAt: p.started_at ?? p.startedAt,
+            completedAt: p.completed_at ?? p.completedAt,
+            triggeredBy: p.triggered_by ?? p.triggeredBy,
+          }))
+        );
+      }
+    } catch (err) {
+      // keep mock pipelines as fallback
+      console.warn("No pipelines endpoint or failed to fetch pipelines", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPipelines();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'success':
+      case "success":
         return <CheckCircleIcon className="h-5 w-5 text-green-500" />;
-      case 'failed':
+      case "failed":
         return <XCircleIcon className="h-5 w-5 text-red-500" />;
-      case 'running':
-        return <div className="h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />;
-      case 'pending':
+      case "running":
+        return (
+          <div className="h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        );
+      case "pending":
         return <ClockIcon className="h-5 w-5 text-gray-400" />;
       default:
         return <ClockIcon className="h-5 w-5 text-gray-400" />;
@@ -166,26 +235,26 @@ export default function GitOpsWorkflow() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'success':
-        return 'bg-green-50 border-green-200';
-      case 'failed':
-        return 'bg-red-50 border-red-200';
-      case 'running':
-        return 'bg-blue-50 border-blue-200';
-      case 'pending':
-        return 'bg-gray-50 border-gray-200';
+      case "success":
+        return "bg-green-50 border-green-200";
+      case "failed":
+        return "bg-red-50 border-red-200";
+      case "running":
+        return "bg-blue-50 border-blue-200";
+      case "pending":
+        return "bg-gray-50 border-gray-200";
       default:
-        return 'bg-gray-50 border-gray-200';
+        return "bg-gray-50 border-gray-200";
     }
   };
 
   const getStageIcon = (stageId: string) => {
     switch (stageId) {
-      case 'build':
+      case "build":
         return <CodeBracketIcon className="h-4 w-4" />;
-      case 'test':
+      case "test":
         return <WrenchScrewdriverIcon className="h-4 w-4" />;
-      case 'deploy':
+      case "deploy":
         return <RocketLaunchIcon className="h-4 w-4" />;
       default:
         return <PlayIcon className="h-4 w-4" />;
@@ -193,7 +262,7 @@ export default function GitOpsWorkflow() {
   };
 
   const formatDuration = (seconds?: number) => {
-    if (!seconds) return '-';
+    if (!seconds) return "-";
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}m ${remainingSeconds}s`;
@@ -202,9 +271,11 @@ export default function GitOpsWorkflow() {
   const formatTimeAgo = (timestamp: string) => {
     const now = new Date();
     const time = new Date(timestamp);
-    const diffInMinutes = Math.floor((now.getTime() - time.getTime()) / (1000 * 60));
-    
-    if (diffInMinutes < 1) return 'Just now';
+    const diffInMinutes = Math.floor(
+      (now.getTime() - time.getTime()) / (1000 * 60)
+    );
+
+    if (diffInMinutes < 1) return "Just now";
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
     return `${Math.floor(diffInMinutes / 1440)}d ago`;
@@ -222,7 +293,7 @@ export default function GitOpsWorkflow() {
           disabled={isLoading}
           className="px-3 py-1 text-sm bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
         >
-          {isLoading ? 'Refreshing...' : 'Refresh'}
+          {isLoading ? "Refreshing..." : "Refresh"}
         </button>
       </div>
 
@@ -240,7 +311,8 @@ export default function GitOpsWorkflow() {
                 <div>
                   <h4 className="font-medium text-gray-900">{pipeline.name}</h4>
                   <p className="text-sm text-gray-600">
-                    {pipeline.branch} • {pipeline.commit} • by {pipeline.triggeredBy}
+                    {pipeline.branch} • {pipeline.commit} • by{" "}
+                    {pipeline.triggeredBy}
                   </p>
                 </div>
               </div>
@@ -250,8 +322,13 @@ export default function GitOpsWorkflow() {
                 </p>
                 {pipeline.completedAt && (
                   <p className="text-xs text-gray-400">
-                    Duration: {formatDuration(
-                      Math.floor((new Date(pipeline.completedAt).getTime() - new Date(pipeline.startedAt).getTime()) / 1000)
+                    Duration:{" "}
+                    {formatDuration(
+                      Math.floor(
+                        (new Date(pipeline.completedAt).getTime() -
+                          new Date(pipeline.startedAt).getTime()) /
+                          1000
+                      )
                     )}
                   </p>
                 )}
@@ -263,13 +340,17 @@ export default function GitOpsWorkflow() {
               {pipeline.stages.map((stage, index) => (
                 <React.Fragment key={stage.id}>
                   <div className="flex items-center space-x-2">
-                    <div className={`p-2 rounded-lg ${getStatusColor(stage.status)}`}>
+                    <div
+                      className={`p-2 rounded-lg ${getStatusColor(stage.status)}`}
+                    >
                       {getStageIcon(stage.id)}
                     </div>
                     <div className="text-xs">
                       <p className="font-medium text-gray-900">{stage.name}</p>
                       {stage.duration && (
-                        <p className="text-gray-500">{formatDuration(stage.duration)}</p>
+                        <p className="text-gray-500">
+                          {formatDuration(stage.duration)}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -307,7 +388,9 @@ export default function GitOpsWorkflow() {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Commit</p>
-                <p className="font-medium font-mono">{selectedPipeline.commit}</p>
+                <p className="font-medium font-mono">
+                  {selectedPipeline.commit}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-gray-600">Triggered By</p>
@@ -315,37 +398,55 @@ export default function GitOpsWorkflow() {
               </div>
               <div>
                 <p className="text-sm text-gray-600">Started</p>
-                <p className="font-medium">{new Date(selectedPipeline.startedAt).toLocaleString()}</p>
+                <p className="font-medium">
+                  {new Date(selectedPipeline.startedAt).toLocaleString()}
+                </p>
               </div>
             </div>
 
             <div>
-              <h4 className="font-medium text-gray-900 mb-3">Pipeline Stages</h4>
+              <h4 className="font-medium text-gray-900 mb-3">
+                Pipeline Stages
+              </h4>
               <div className="space-y-4">
                 {selectedPipeline.stages.map((stage) => (
-                  <div key={stage.id} className={`p-4 rounded-lg border ${getStatusColor(stage.status)}`}>
+                  <div
+                    key={stage.id}
+                    className={`p-4 rounded-lg border ${getStatusColor(stage.status)}`}
+                  >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center space-x-2">
                         {getStageIcon(stage.id)}
-                        <h5 className="font-medium text-gray-900">{stage.name}</h5>
+                        <h5 className="font-medium text-gray-900">
+                          {stage.name}
+                        </h5>
                         {getStatusIcon(stage.status)}
                       </div>
                       <div className="text-right">
                         {stage.duration && (
-                          <p className="text-sm text-gray-600">{formatDuration(stage.duration)}</p>
+                          <p className="text-sm text-gray-600">
+                            {formatDuration(stage.duration)}
+                          </p>
                         )}
                         {stage.timestamp && (
-                          <p className="text-xs text-gray-500">{formatTimeAgo(stage.timestamp)}</p>
+                          <p className="text-xs text-gray-500">
+                            {formatTimeAgo(stage.timestamp)}
+                          </p>
                         )}
                       </div>
                     </div>
-                    <p className="text-sm text-gray-600 mb-3">{stage.description}</p>
-                    
+                    <p className="text-sm text-gray-600 mb-3">
+                      {stage.description}
+                    </p>
+
                     {stage.logs && stage.logs.length > 0 && (
                       <div className="bg-gray-900 text-green-400 p-3 rounded-lg font-mono text-xs">
                         {stage.logs.map((log, index) => (
                           <div key={index} className="mb-1">
-                            <span className="text-gray-500">[{new Date().toLocaleTimeString()}]</span> {log}
+                            <span className="text-gray-500">
+                              [{new Date().toLocaleTimeString()}]
+                            </span>{" "}
+                            {log}
                           </div>
                         ))}
                       </div>

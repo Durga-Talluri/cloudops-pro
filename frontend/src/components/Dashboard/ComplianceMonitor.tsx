@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  ShieldCheckIcon, 
+import React, { useState, useEffect } from "react";
+import {
+  ShieldCheckIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
   XCircleIcon,
-  ArrowPathIcon
-} from '@heroicons/react/24/outline';
+  ArrowPathIcon,
+} from "@heroicons/react/24/outline";
 
 interface ComplianceStandard {
   id: string;
   name: string;
   description: string;
-  status: 'pass' | 'fail' | 'warning';
+  status: "pass" | "fail" | "warning";
   score: number;
   lastChecked: string;
   issues: ComplianceIssue[];
@@ -20,97 +20,70 @@ interface ComplianceStandard {
 interface ComplianceIssue {
   id: string;
   title: string;
-  severity: 'critical' | 'high' | 'medium' | 'low';
+  severity: "critical" | "high" | "medium" | "low";
   description: string;
   remediation: string;
 }
-
-const mockComplianceData: ComplianceStandard[] = [
-  {
-    id: 'soc2',
-    name: 'SOC 2 Type II',
-    description: 'Security, availability, and confidentiality controls',
-    status: 'pass',
-    score: 94,
-    lastChecked: '2024-01-20T10:30:00Z',
-    issues: [
-      {
-        id: 'soc2-1',
-        title: 'Access logging incomplete',
-        severity: 'medium',
-        description: 'Some admin actions are not being logged',
-        remediation: 'Enable comprehensive audit logging for all admin operations'
-      }
-    ]
-  },
-  {
-    id: 'hipaa',
-    name: 'HIPAA',
-    description: 'Health Insurance Portability and Accountability Act',
-    status: 'pass',
-    score: 98,
-    lastChecked: '2024-01-19T14:15:00Z',
-    issues: [
-      {
-        id: 'hipaa-1',
-        title: 'Data encryption at rest',
-        severity: 'low',
-        description: 'Some backup files are not encrypted',
-        remediation: 'Enable encryption for all backup storage'
-      }
-    ]
-  },
-  {
-    id: 'pci',
-    name: 'PCI DSS',
-    description: 'Payment Card Industry Data Security Standard',
-    status: 'warning',
-    score: 87,
-    lastChecked: '2024-01-18T09:45:00Z',
-    issues: [
-      {
-        id: 'pci-1',
-        title: 'Network segmentation insufficient',
-        severity: 'high',
-        description: 'Payment processing network not properly isolated',
-        remediation: 'Implement proper network segmentation for cardholder data environment'
-      },
-      {
-        id: 'pci-2',
-        title: 'Vulnerability scanning outdated',
-        severity: 'medium',
-        description: 'Last vulnerability scan was 45 days ago',
-        remediation: 'Schedule monthly vulnerability scans and implement automated scanning'
-      }
-    ]
-  }
-];
+interface ComplianceData {
+  data: ComplianceStandard[];
+  overallScore: number;
+}
+import { apiService } from "@/services/api";
 
 export default function ComplianceMonitor() {
-  const [complianceData, setComplianceData] = useState<ComplianceStandard[]>(mockComplianceData);
+  const [complianceData, setComplianceData] = useState<ComplianceData>({
+    data: [],
+    overallScore: 0,
+  });
+  const { overallScore } = complianceData;
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedStandard, setSelectedStandard] = useState<ComplianceStandard | null>(null);
+  const [selectedStandard, setSelectedStandard] =
+    useState<ComplianceStandard | null>(null);
 
   const fetchComplianceData = async () => {
     setIsLoading(true);
     try {
-      // Simulate API call to /compliance endpoint
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log('Fetching compliance data from /compliance endpoint');
+      const resAny: any = await apiService.get("/compliance/");
+      if (resAny?.standards) {
+        setComplianceData((prev) => ({
+          ...prev,
+          overallScore: resAny.overall_score,
+          data: (resAny.standards as any[]).map((s: any) => ({
+            id: s.id,
+            name: s.name,
+            description: s.description,
+            status: s.status,
+            score: s.score,
+            lastChecked: s.last_checked ?? s.lastChecked,
+            issues: (s.issues || []).map((i: any) => ({
+              id: i.id,
+              title: i.title,
+              severity: i.severity,
+              description: i.description,
+              remediation: i.remediation,
+            })),
+          })),
+        }));
+      }
     } catch (error) {
-      console.error('Failed to fetch compliance data:', error);
+      console.error("Failed to fetch compliance data:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchComplianceData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'pass':
+      case "pass":
         return <CheckCircleIcon className="h-6 w-6 text-green-500" />;
-      case 'fail':
+      case "fail":
         return <XCircleIcon className="h-6 w-6 text-red-500" />;
-      case 'warning':
+      case "warning":
         return <ExclamationTriangleIcon className="h-6 w-6 text-yellow-500" />;
       default:
         return <ExclamationTriangleIcon className="h-6 w-6 text-gray-500" />;
@@ -119,41 +92,41 @@ export default function ComplianceMonitor() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pass':
-        return 'bg-green-50 border-green-200';
-      case 'fail':
-        return 'bg-red-50 border-red-200';
-      case 'warning':
-        return 'bg-yellow-50 border-yellow-200';
+      case "pass":
+        return "bg-green-50 border-green-200";
+      case "fail":
+        return "bg-red-50 border-red-200";
+      case "warning":
+        return "bg-yellow-50 border-yellow-200";
       default:
-        return 'bg-gray-50 border-gray-200';
+        return "bg-gray-50 border-gray-200";
     }
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 95) return 'text-green-600';
-    if (score >= 85) return 'text-yellow-600';
-    return 'text-red-600';
+    if (score >= 95) return "text-green-600";
+    if (score >= 85) return "text-yellow-600";
+    return "text-red-600";
   };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'critical':
-        return 'text-red-600 bg-red-50';
-      case 'high':
-        return 'text-red-500 bg-red-50';
-      case 'medium':
-        return 'text-yellow-600 bg-yellow-50';
-      case 'low':
-        return 'text-green-600 bg-green-50';
+      case "critical":
+        return "text-red-600 bg-red-50";
+      case "high":
+        return "text-red-500 bg-red-50";
+      case "medium":
+        return "text-yellow-600 bg-yellow-50";
+      case "low":
+        return "text-green-600 bg-green-50";
       default:
-        return 'text-gray-600 bg-gray-50';
+        return "text-gray-600 bg-gray-50";
     }
   };
-
-  const overallScore = Math.round(
-    complianceData.reduce((sum, standard) => sum + standard.score, 0) / complianceData.length
-  );
+  // const overallScore = Math.round(
+  //   complianceData.reduce((sum, standard) => sum + standard.score, 0) /
+  //     complianceData.length
+  // );
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -167,7 +140,9 @@ export default function ComplianceMonitor() {
           disabled={isLoading}
           className="p-2 text-gray-400 hover:text-gray-600 disabled:opacity-50"
         >
-          <ArrowPathIcon className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          <ArrowPathIcon
+            className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+          />
         </button>
       </div>
 
@@ -179,10 +154,13 @@ export default function ComplianceMonitor() {
             {overallScore}%
           </p>
           <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-            <div 
+            <div
               className={`h-2 rounded-full ${
-                overallScore >= 95 ? 'bg-green-500' : 
-                overallScore >= 85 ? 'bg-yellow-500' : 'bg-red-500'
+                overallScore >= 95
+                  ? "bg-green-500"
+                  : overallScore >= 85
+                    ? "bg-yellow-500"
+                    : "bg-red-500"
               }`}
               style={{ width: `${overallScore}%` }}
             ></div>
@@ -192,7 +170,7 @@ export default function ComplianceMonitor() {
 
       {/* Compliance Standards */}
       <div className="space-y-4">
-        {complianceData.map((standard) => (
+        {complianceData.data.map((standard) => (
           <div
             key={standard.id}
             className={`p-4 rounded-lg border-2 cursor-pointer transition-all hover:shadow-md ${getStatusColor(standard.status)}`}
@@ -203,15 +181,20 @@ export default function ComplianceMonitor() {
                 {getStatusIcon(standard.status)}
                 <div>
                   <h4 className="font-medium text-gray-900">{standard.name}</h4>
-                  <p className="text-sm text-gray-600">{standard.description}</p>
+                  <p className="text-sm text-gray-600">
+                    {standard.description}
+                  </p>
                 </div>
               </div>
               <div className="text-right">
-                <p className={`text-lg font-bold ${getScoreColor(standard.score)}`}>
+                <p
+                  className={`text-lg font-bold ${getScoreColor(standard.score)}`}
+                >
                   {standard.score}%
                 </p>
                 <p className="text-xs text-gray-500">
-                  {standard.issues.length} issue{standard.issues.length !== 1 ? 's' : ''}
+                  {standard.issues.length} issue
+                  {standard.issues.length !== 1 ? "s" : ""}
                 </p>
               </div>
             </div>
@@ -237,12 +220,17 @@ export default function ComplianceMonitor() {
             </div>
 
             <div className="mb-4">
-              <p className="text-sm text-gray-600 mb-2">{selectedStandard.description}</p>
+              <p className="text-sm text-gray-600 mb-2">
+                {selectedStandard.description}
+              </p>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-500">
-                  Last checked: {new Date(selectedStandard.lastChecked).toLocaleDateString()}
+                  Last checked:{" "}
+                  {new Date(selectedStandard.lastChecked).toLocaleDateString()}
                 </span>
-                <span className={`text-lg font-bold ${getScoreColor(selectedStandard.score)}`}>
+                <span
+                  className={`text-lg font-bold ${getScoreColor(selectedStandard.score)}`}
+                >
                   {selectedStandard.score}%
                 </span>
               </div>
@@ -255,12 +243,18 @@ export default function ComplianceMonitor() {
                   {selectedStandard.issues.map((issue) => (
                     <div key={issue.id} className="p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-start justify-between mb-2">
-                        <h5 className="font-medium text-gray-900">{issue.title}</h5>
-                        <span className={`px-2 py-1 text-xs rounded-full ${getSeverityColor(issue.severity)}`}>
+                        <h5 className="font-medium text-gray-900">
+                          {issue.title}
+                        </h5>
+                        <span
+                          className={`px-2 py-1 text-xs rounded-full ${getSeverityColor(issue.severity)}`}
+                        >
                           {issue.severity}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">{issue.description}</p>
+                      <p className="text-sm text-gray-600 mb-2">
+                        {issue.description}
+                      </p>
                       <div className="bg-blue-50 p-2 rounded">
                         <p className="text-xs text-blue-800">
                           <strong>Remediation:</strong> {issue.remediation}
@@ -275,7 +269,9 @@ export default function ComplianceMonitor() {
             {selectedStandard.issues.length === 0 && (
               <div className="text-center py-8">
                 <CheckCircleIcon className="h-12 w-12 text-green-500 mx-auto mb-2" />
-                <p className="text-gray-600">No issues found for this standard</p>
+                <p className="text-gray-600">
+                  No issues found for this standard
+                </p>
               </div>
             )}
           </div>

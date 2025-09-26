@@ -294,6 +294,8 @@ REACT_APP_API_URL=http://localhost:8000/api/v1
 REACT_APP_ENVIRONMENT=development
 ```
 
+Note: The frontend components now fetch live data from the backend API. Ensure `REACT_APP_API_URL` points to your backend (for local development use `http://localhost:8000/api/v1`).
+
 #### Mobile (.env)
 
 ```env
@@ -400,14 +402,11 @@ npx expo build:ios
 - Update documentation
 - Ensure all tests pass
 
-
-
 ### Documentation
 
 - [API Documentation](http://localhost:8000/docs)
 - [Architecture Guide](docs/architecture.md)
 - [Deployment Guide](docs/deployment.md)
-
 
 ### Professional Support
 
